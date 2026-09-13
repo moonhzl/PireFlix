@@ -32,9 +32,17 @@ async function requestCashInPay(body) {
             const response = await fetch(CASHINPAY_URL, { method: "POST", headers: { Authorization: `Bearer ${CASHINPAY_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(30000) });
             const data = await response.json().catch(() => ({}));
             if (response.ok) return data;
-            if (response.status < 500) throw new Error(data.message || data.error || `CashinPay retornou HTTP ${response.status}`);
+            if (response.status < 500) {
+                const providerError = typeof data.error === "string" ? data.error : (data.error?.message || data.message);
+                const error = new Error(providerError || `CashinPay recusou a cobrança (HTTP ${response.status}).`);
+                error.retryable = false;
+                throw error;
+            }
             lastError = new Error(`CashinPay retornou HTTP ${response.status}`);
-        } catch (error) { lastError = error; }
+        } catch (error) {
+            if (error.retryable === false) throw error;
+            lastError = error;
+        }
         if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 500 * (2 ** attempt)));
     }
     throw lastError || new Error("CashinPay indisponível.");
@@ -55,7 +63,12 @@ async function createPayment(user, payload) {
     const { error: orderError } = await supabase.from("payment_orders").insert(order);
     if (orderError) throw new Error("Não foi possível criar o pedido.");
     try {
-        const response = await requestCashInPay({ amount: plan.amount, transaction_id: transactionId, customer: { name: user.name, email: user.email, phone, document }, description: `LuneFlix — Plano ${plan.name}` });
+        const response = await requestCashInPay({
+            amount: plan.amount,
+            transaction_id: transactionId,
+            customer: { name: user.name, email: user.email, phone, document: "CPF" },
+            description: `LuneFlix — Plano ${plan.name}`
+        });
         const data = response.data || response;
         const pix = data.pix || {};
         if (!data.id || !pix.qrcode || !pix.copy_paste) throw new Error("CashinPay não retornou os dados PIX esperados.");
