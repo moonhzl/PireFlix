@@ -21,6 +21,15 @@ function ensureConfigured() {
     if (!supabase) throw new Error("Banco de pagamentos indisponível.");
 }
 function cleanDigits(value) { return String(value || "").replace(/\D/g, ""); }
+function isValidCpf(value) {
+    if (!/^\d{11}$/.test(value) || /^(\d)\1{10}$/.test(value)) return false;
+    const digit = size => {
+        const sum = value.slice(0, size).split("").reduce((total, current, index) => total + Number(current) * (size + 1 - index), 0);
+        const remainder = (sum * 10) % 11;
+        return remainder === 10 ? 0 : remainder;
+    };
+    return digit(9) === Number(value[9]) && digit(10) === Number(value[10]);
+}
 function publicOrder(order) {
     return { transactionId: order.transaction_id, plan: order.plan, amount: Number(order.amount), status: order.status, qrcode: order.pix_qrcode, copyPaste: order.pix_copy_paste, paidAt: order.paid_at };
 }
@@ -64,7 +73,7 @@ async function createPayment(user, payload) {
     const document = cleanDigits(payload.document);
     if (!plan) throw new Error("Plano inválido.");
     if (phone.length < 10 || phone.length > 11) throw new Error("Informe um telefone válido com DDD.");
-    if (document.length !== 11) throw new Error("Informe um CPF válido.");
+    if (!isValidCpf(document)) throw new Error("Informe um CPF válido.");
     const transactionId = `lune_${crypto.randomUUID().replace(/-/g, "")}`;
     const order = { id: `order_${crypto.randomUUID()}`, transaction_id: transactionId, user_id: user.id, plan: planKey, amount: plan.amount, status: "pending", created_at: now(), updated_at: now() };
     const { error: orderError } = await supabase.from("payment_orders").insert(order);
@@ -73,7 +82,7 @@ async function createPayment(user, payload) {
         const response = await requestCashInPay({
             amount: plan.amount,
             transaction_id: transactionId,
-            customer: { name: user.name, email: user.email, phone, document: "CPF" },
+            customer: { name: user.name, email: user.email, phone, document },
             description: `LuneFlix — Plano ${plan.name}`
         });
         const data = response.data || response;
