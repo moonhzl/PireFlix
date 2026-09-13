@@ -6,6 +6,8 @@ const passwordInput = document.getElementById("password");
 const togglePassword = document.getElementById("togglePassword");
 
 const loginButton = document.getElementById("loginButton");
+const nextPage = new URLSearchParams(location.search).get("next");
+if (nextPage && nextPage.startsWith("payment.html")) document.getElementById("registerLink").href = `register.html?next=${encodeURIComponent(nextPage)}`;
 
 
 // ============================
@@ -58,7 +60,7 @@ loginForm.addEventListener("submit", async (event) => {
         }
 
         localStorage.setItem("luneflixUser", JSON.stringify(data.user));
-        window.location.href = "home.html";
+        window.location.href = nextPage && nextPage.startsWith("payment.html") ? nextPage : "home.html";
     } catch (error) {
         alert(error.message);
         loginButton.classList.remove("loading");

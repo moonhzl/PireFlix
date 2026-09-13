@@ -159,7 +159,8 @@ registerForm.addEventListener("submit", async (event) => {
 
         showMessage("Conta criada com sucesso! Redirecionando...", "success");
         registerForm.reset();
-        setTimeout(() => { window.location.href = "login.html"; }, 1000);
+        const nextPage = new URLSearchParams(location.search).get("next");
+        setTimeout(() => { window.location.href = nextPage && nextPage.startsWith("payment.html") ? `login.html?next=${encodeURIComponent(nextPage)}` : "login.html"; }, 1000);
 
 
     } catch (error) {

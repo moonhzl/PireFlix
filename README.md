@@ -45,6 +45,12 @@ FRONTEND_URL=https://seu-projeto.vercel.app
 
 `SUPABASE_SERVICE_ROLE_KEY` é uma chave privada. Ela deve existir somente no backend, nunca no frontend ou no repositório.
 
+## Pagamentos PIX (CashinPay)
+
+O backend cria cobranças PIX na CashinPay e valida o webhook assinado; `CASHINPAY_API_KEY` e `CASHINPAY_WEBHOOK_SECRET` devem ficar somente nas variáveis do backend. Execute também `supabase/migrations/003_cashinpay_payments.sql` no SQL Editor do Supabase antes do deploy.
+
+No painel CashinPay, configure o webhook HTTPS para `https://SEU_BACKEND/api/webhooks/cashinpay` e informe o mesmo segredo em `CASHINPAY_WEBHOOK_SECRET`. Para desenvolvimento local, exponha o servidor com `ngrok http 3000` e use a URL HTTPS fornecida pelo ngrok. Use uma chave `sk_test_` no ambiente de testes; nunca teste cobranças reais com uma chave live.
+
 Em produção, `FRONTEND_URL` deve ser a origem exata da Vercel, sem barra final. No frontend, coloque a URL pública do Railway em `frontend/front/javascript/config.js`. Como o frontend é estático, essa URL é configurada no arquivo antes do deploy.
 
 ## Supabase e sessões

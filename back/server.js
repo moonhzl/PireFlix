@@ -8,6 +8,7 @@ const { spawn } = require("child_process");
 const crypto = require("crypto");
 const catalogService = require("./services/catalogService");
 const sessionStore = require("./services/sessionStore");
+const paymentService = require("./services/paymentService");
 
 const app = express();
 
@@ -24,6 +25,17 @@ const secureCookie = process.env.NODE_ENV === "production" ? "; Secure" : "";
 const cookieSameSite = process.env.NODE_ENV === "production" ? "None" : "Lax";
 const configuredOrigins = (process.env.FRONTEND_URL || "").split(",").map(origin => origin.trim().replace(/\/$/, "")).filter(Boolean);
 const pythonCommand = process.env.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3");
+
+app.post("/api/webhooks/cashinpay", express.raw({ type: "application/json" }), async (req, res) => {
+    try {
+        await paymentService.processWebhook(req.body, req.get("X-CashinPay-Signature"));
+        res.sendStatus(200);
+    } catch (error) {
+        // Não registrar corpo, assinatura ou segredos do webhook.
+        console.error("Webhook CashinPay recusado:", error.message);
+        res.status(error.message.includes("Assinatura") ? 401 : 400).json({ error: "Webhook recusado." });
+    }
+});
 
 app.use(express.json());
 
@@ -281,6 +293,14 @@ app.post("/api/login", limitAuth, (req, res) => {
 });
 app.get("/api/me", requireUser, (req, res) => res.json({ ok: true, user: req.user }));
 app.patch("/api/profile", requireUser, (req, res) => runAuthController({ action: "update_profile", user_id: req.user.id, ...req.body }, res));
+app.post("/api/payment/create", requireUser, async (req, res) => {
+    try { res.status(201).json({ ok: true, payment: await paymentService.createPayment(req.user, req.body) }); }
+    catch (error) { res.status(400).json({ ok: false, error: error.message }); }
+});
+app.get("/api/payment/:transactionId", requireUser, async (req, res) => {
+    try { res.json({ ok: true, payment: await paymentService.getPayment(req.user.id, req.params.transactionId) }); }
+    catch (error) { res.status(404).json({ ok: false, error: error.message }); }
+});
 app.post("/api/logout", requireUser, async (req, res) => {
     try {
         await sessionStore.deleteSession(readCookies(req).luneflix_session);

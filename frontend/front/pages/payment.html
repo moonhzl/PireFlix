@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUNEFLIX — Pagamento PIX</title>
+    <link rel="stylesheet" href="../css/payment.css">
+</head>
+<body>
+    <header class="checkout-header"><a href="home.html" class="brand">LUNE<span>FLIX</span></a><span>Pagamento seguro via PIX</span></header>
+    <main class="checkout-layout">
+        <section class="checkout-card" id="checkoutCard">
+            <p class="eyebrow">ASSINATURA</p><h1>Finalize seu plano</h1>
+            <div class="plan-summary"><div><small>Plano selecionado</small><strong id="planName">Carregando…</strong></div><strong id="planPrice">—</strong></div>
+            <form id="paymentForm">
+                <label>Telefone com DDD<input id="phone" inputmode="numeric" autocomplete="tel" placeholder="11999999999" required></label>
+                <label>CPF<input id="document" inputmode="numeric" autocomplete="off" placeholder="Somente números" required></label>
+                <button class="pay-button" id="payButton" type="submit">Pagar com PIX <span>→</span></button>
+            </form>
+            <p class="safe-note">O valor é definido no servidor. Seus dados de pagamento não ficam expostos no navegador.</p>
+        </section>
+        <section class="pix-card hidden" id="pixCard">
+            <p class="eyebrow">COBRANÇA PIX</p><h1>Aguardando pagamento</h1><p>Escaneie o QR Code ou copie o código abaixo. A confirmação é automática.</p>
+            <img id="qrcode" alt="QR Code PIX" class="qrcode">
+            <div class="copy-field"><code id="copyPaste"></code><button id="copyButton" type="button">Copiar</button></div>
+            <div class="payment-status" id="paymentStatus"><i></i> Aguardando pagamento</div>
+        </section>
+    </main>
+    <div id="message" class="message" role="status"></div>
+    <script src="../javascript/config.js"></script><script src="../javascript/payment.js"></script>
+</body>
+</html>
