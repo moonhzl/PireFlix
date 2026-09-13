@@ -98,6 +98,13 @@ document.getElementById("copyButton").addEventListener("click", async () => { tr
 setMask("cpf", formatCpf); setMask("phone", formatPhone); setMask("cep", formatCep);
 document.getElementById("cep").addEventListener("blur", fillAddress);
 document.getElementById("state").addEventListener("input", event => { event.target.value = event.target.value.toUpperCase().slice(0, 2); });
+document.querySelectorAll("[data-password-toggle]").forEach(button => button.addEventListener("click", () => {
+    const input = document.getElementById(button.dataset.passwordToggle);
+    const showing = input.type === "text";
+    input.type = showing ? "password" : "text";
+    button.textContent = showing ? "◉" : "◌";
+    button.setAttribute("aria-label", showing ? "Mostrar senha" : "Ocultar senha");
+}));
 if (transactionId) {
     checkStatus().then(payment => {
         if (payment && payment.status === "pending") {

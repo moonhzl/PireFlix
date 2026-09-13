@@ -86,18 +86,3 @@ document
             .then(({ response, data }) => alert(response.ok ? "Se o e-mail existir, as instruções foram geradas. Em desenvolvimento, o token aparece no terminal do servidor." : (data.error || "Não foi possível solicitar a recuperação.")))
             .catch(() => alert("Não foi possível solicitar a recuperação."));
     });
-
-
-// ============================
-// GOOGLE
-// ============================
-
-document
-    .querySelector(".social-login")
-    .addEventListener("click", () => {
-
-        console.log(
-            "Iniciar autenticação com Google"
-        );
-
-    });
