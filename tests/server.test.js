@@ -44,6 +44,12 @@ test("checkout PIX permite iniciar cadastro sem sessão", async () => {
     assert.notEqual(response.status, 401);
 });
 
+test("rota antiga de cadastro redireciona para os planos", async () => {
+    const response = await fetch(`http://localhost:${port}/front/pages/register.html`, { redirect: "manual" });
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("location"), "/#plans");
+});
+
 test("mantém os três planos e os preços atuais no checkout", () => {
     const { PLANS } = require("../back/services/paymentService");
     assert.deepEqual(PLANS, {

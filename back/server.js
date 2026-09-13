@@ -57,6 +57,9 @@ app.use((request, response, next) => {
     next();
 });
 
+// O cadastro é concluído exclusivamente pelo checkout PIX; preserva links antigos sem manter um segundo formulário ativo.
+app.get(["/register", "/register.html", "/front/pages/register.html"], (req, res) => res.redirect(302, "/#plans"));
+
 // O backend não deve expor código, banco ou arquivos de ambiente.
 app.use(express.static(frontendRoot));
 
@@ -255,7 +258,6 @@ app.get("/api/admin/catalog/logs", async (req, res) => {
     catch (error) { res.status(500).json({ ok: false, error: error.message }); }
 });
 
-app.post("/api/register", limitAuth, (req, res) => runAuthController({ action: "register", ...req.body }, res));
 app.post("/api/forgot-password", limitAuth, (req, res) => {
     const controller = spawn(pythonCommand, [authController]);
     let stdout = "";

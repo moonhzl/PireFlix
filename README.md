@@ -73,7 +73,7 @@ O script envia usuários, catálogo, pagamentos, cupons, módulos, configuraçõ
 
 ## Funcionalidades
 
-- Cadastro e login com senha protegida por PBKDF2.
+- Login com senha protegida por PBKDF2; novos cadastros são criados exclusivamente após a confirmação do PIX.
 - Sessão HTTP com cookie `HttpOnly`, logout e proteção do player.
 - Recuperação de senha com token de uso único e expiração de 30 minutos.
 - Perfil com nome e avatar persistidos no backend.
@@ -88,7 +88,6 @@ O script envia usuários, catálogo, pagamentos, cupons, módulos, configuraçõ
 
 | Método | Rota | Finalidade |
 | --- | --- | --- |
-| `POST` | `/api/register` | Criar conta |
 | `POST` | `/api/login` | Entrar e criar sessão |
 | `GET` | `/api/me` | Consultar sessão atual |
 | `POST` | `/api/logout` | Encerrar sessão |

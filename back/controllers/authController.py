@@ -4,16 +4,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from models.user import authenticate_user, create_password_reset, create_user, get_user, initialize_database, reset_password, update_profile
+from models.user import authenticate_user, create_password_reset, get_user, initialize_database, reset_password, update_profile
 
 
 def handle_request(request):
 	initialize_database()
 	action = request.get("action")
-
-	if action == "register":
-		user = create_user(request["name"], request["email"], request["password"])
-		return {"ok": True, "user": user}
 
 	if action == "login":
 		user = authenticate_user(request["email"], request["password"], request.get("ip"))

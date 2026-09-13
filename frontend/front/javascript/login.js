@@ -7,7 +7,7 @@ const togglePassword = document.getElementById("togglePassword");
 
 const loginButton = document.getElementById("loginButton");
 const nextPage = new URLSearchParams(location.search).get("next");
-if (nextPage && nextPage.startsWith("payment.html")) document.getElementById("registerLink").href = `register.html?next=${encodeURIComponent(nextPage)}`;
+if (nextPage && nextPage.startsWith("payment.html")) document.getElementById("registerLink").href = `../../index.html#plans`;
 
 
 // ============================

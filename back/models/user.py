@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from datetime import datetime, timezone
 
-from models.supabase_client import SupabaseError, delete, insert, next_id, select, update
+from models.supabase_client import delete, insert, next_id, select, update
 
 
 def initialize_database():
@@ -17,18 +17,11 @@ def _hash_password(password, salt=None):
 	return salt.hex(), password_hash.hex()
 
 
-def create_user(name, email, password):
-	salt, password_hash = _hash_password(password)
-	try:
-		user = insert("users", {"id": next_id("users"), "name": name.strip(), "email": email.strip().lower(), "password_hash": password_hash, "password_salt": salt, "created_at": datetime.now(timezone.utc).isoformat()})
-		return {key: user[key] for key in ("id", "name", "email")}
-	except SupabaseError as error:
-		if "duplicate key" in str(error).lower() or "unique" in str(error).lower(): raise ValueError("Este e-mail já está cadastrado.")
-		raise
-
-
 def authenticate_user(email, password, ip=None):
-	rows = select("users", {"email": f"eq.{email.strip().lower()}"}, limit=1)
+	identifier = email.strip().lower()
+	rows = select("users", {"email": f"eq.{identifier}"}, limit=1)
+	if not rows:
+		rows = select("users", {"username": f"eq.{identifier}"}, limit=1)
 	user = rows[0] if rows else None
 
 	if user is None:
