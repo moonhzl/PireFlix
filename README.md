@@ -47,7 +47,7 @@ FRONTEND_URL=https://seu-projeto.vercel.app
 
 ## Pagamentos PIX (CashinPay)
 
-O backend cria cobranças PIX na CashinPay e valida o webhook assinado; `CASHINPAY_API_KEY` e `CASHINPAY_WEBHOOK_SECRET` devem ficar somente nas variáveis do backend. Execute também `supabase/migrations/003_cashinpay_payments.sql` e `supabase/migrations/004_standard_plan.sql` no SQL Editor do Supabase antes do deploy.
+O backend cria cobranças PIX na CashinPay e valida o webhook assinado; `CASHINPAY_API_KEY` e `CASHINPAY_WEBHOOK_SECRET` devem ficar somente nas variáveis do backend. Execute também `supabase/migrations/003_cashinpay_payments.sql`, `supabase/migrations/004_standard_plan.sql` e `supabase/migrations/005_pending_checkout.sql` no SQL Editor do Supabase antes do deploy. A última migração cria o cadastro pendente e conclui a conta somente no webhook de pagamento aprovado.
 
 No painel CashinPay, configure o webhook HTTPS para `https://SEU_BACKEND/api/webhooks/cashinpay` e informe o mesmo segredo em `CASHINPAY_WEBHOOK_SECRET`. Para desenvolvimento local, exponha o servidor com `ngrok http 3000` e use a URL HTTPS fornecida pelo ngrok. Use uma chave `sk_test_` no ambiente de testes; nunca teste cobranças reais com uma chave live.
 

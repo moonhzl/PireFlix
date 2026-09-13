@@ -21,10 +21,13 @@ const frontendRoot = path.join(projectRoot, "frontend");
 const authController = path.join(__dirname, "controllers", "authController.py");
 const adminController = path.join(__dirname, "controllers", "adminController.py");
 const authAttempts = new Map();
+const paymentAttempts = new Map();
 const secureCookie = process.env.NODE_ENV === "production" ? "; Secure" : "";
 const cookieSameSite = process.env.NODE_ENV === "production" ? "None" : "Lax";
 const configuredOrigins = (process.env.FRONTEND_URL || "").split(",").map(origin => origin.trim().replace(/\/$/, "")).filter(Boolean);
 const pythonCommand = process.env.PYTHON_BIN || (process.platform === "win32" ? "python" : "python3");
+
+app.set("trust proxy", 1);
 
 app.post("/api/webhooks/cashinpay", express.raw({ type: "application/json" }), async (req, res) => {
     try {
@@ -152,6 +155,16 @@ function limitAuth(request, response, next) {
     if (attempts.length >= 20) return response.status(429).json({ error: "Muitas tentativas. Aguarde alguns minutos." });
     attempts.push(now);
     authAttempts.set(key, attempts);
+    next();
+}
+
+function limitPayment(request, response, next) {
+    const key = request.ip || "unknown";
+    const now = Date.now();
+    const attempts = (paymentAttempts.get(key) || []).filter(timestamp => timestamp > now - 15 * 60 * 1000);
+    if (attempts.length >= 5) return response.status(429).json({ error: "Muitas tentativas de pagamento. Aguarde alguns minutos." });
+    attempts.push(now);
+    paymentAttempts.set(key, attempts);
     next();
 }
 
@@ -293,15 +306,19 @@ app.post("/api/login", limitAuth, (req, res) => {
 });
 app.get("/api/me", requireUser, (req, res) => res.json({ ok: true, user: req.user }));
 app.patch("/api/profile", requireUser, (req, res) => runAuthController({ action: "update_profile", user_id: req.user.id, ...req.body }, res));
-app.post("/api/payment/create", requireUser, async (req, res) => {
-    try { res.status(201).json({ ok: true, payment: await paymentService.createPayment(req.user, req.body) }); }
+app.post("/api/payment/create", limitPayment, async (req, res) => {
+    try { res.status(201).json({ ok: true, payment: await paymentService.createPayment(req.body, { ip: req.ip, userAgent: req.get("User-Agent") }) }); }
     catch (error) {
         console.error("Falha ao criar pagamento PIX:", { providerStatus: error.providerStatus || null, reason: error.message });
         res.status(error.providerStatus ? 502 : 400).json({ ok: false, error: error.message });
     }
 });
-app.get("/api/payment/:transactionId", requireUser, async (req, res) => {
-    try { res.json({ ok: true, payment: await paymentService.getPayment(req.user.id, req.params.transactionId) }); }
+app.get("/api/payment/:transactionId/status", async (req, res) => {
+    try { res.json({ ok: true, payment: await paymentService.getPayment(req.params.transactionId) }); }
+    catch (error) { res.status(404).json({ ok: false, error: error.message }); }
+});
+app.get("/api/payment/:transactionId", async (req, res) => {
+    try { res.json({ ok: true, payment: await paymentService.getPayment(req.params.transactionId) }); }
     catch (error) { res.status(404).json({ ok: false, error: error.message }); }
 });
 app.post("/api/logout", requireUser, async (req, res) => {

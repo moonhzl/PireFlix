@@ -3,28 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUNEFLIX — Pagamento PIX</title>
+    <title>LUNEFLIX — Assinatura PIX</title>
     <link rel="stylesheet" href="../css/payment.css">
 </head>
 <body>
-    <header class="checkout-header"><a href="home.html" class="brand">LUNE<span>FLIX</span></a><span>Pagamento seguro via PIX</span></header>
+    <header class="checkout-header"><a href="../../index.html#planos" class="brand">LUNE<span>FLIX</span></a><span>Pagamento seguro via PIX</span></header>
     <main class="checkout-layout">
         <section class="checkout-card" id="checkoutCard">
-            <p class="eyebrow">ASSINATURA</p><h1>Finalize seu plano</h1>
+            <div class="checkout-intro"><div><p class="eyebrow">ASSINATURA</p><h1>Crie sua conta e assine</h1><p>Seu acesso será ativado apenas depois da confirmação do PIX.</p></div><a href="login.html" class="login-link">Já tenho conta</a></div>
             <div class="plan-summary"><div><small>Plano selecionado</small><strong id="planName">Carregando…</strong></div><strong id="planPrice">—</strong></div>
-            <form id="paymentForm">
-                <label>Telefone com DDD<input id="phone" inputmode="numeric" autocomplete="tel" placeholder="11999999999" required></label>
-                <label>CPF<input id="document" inputmode="numeric" autocomplete="off" placeholder="Somente números" required></label>
-                <button class="pay-button" id="payButton" type="submit">Pagar com PIX <span>→</span></button>
+            <ol class="checkout-steps" aria-label="Etapas do checkout"><li class="active">1. Conta</li><li>2. Dados</li><li>3. Endereço</li><li>4. PIX</li></ol>
+            <form id="paymentForm" novalidate>
+                <fieldset><legend>Dados da conta</legend><div class="form-grid"><label class="full">Nome completo<input id="name" autocomplete="name" maxlength="80" required placeholder="Como você quer ser chamado"></label><label>E-mail<input id="email" type="email" autocomplete="email" maxlength="160" required placeholder="voce@email.com"></label><label>Nome de usuário<input id="username" autocomplete="username" maxlength="30" required placeholder="seu_usuario"></label><label>Senha<input id="password" type="password" autocomplete="new-password" minlength="8" required placeholder="Mínimo de 8 caracteres"></label><label>Confirmar senha<input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Repita sua senha"></label></div></fieldset>
+                <fieldset><legend>Dados pessoais</legend><div class="form-grid"><label>CPF<input id="cpf" inputmode="numeric" autocomplete="off" maxlength="14" required placeholder="000.000.000-00"></label><label>Telefone com DDD<input id="phone" inputmode="numeric" autocomplete="tel" maxlength="15" required placeholder="(00) 00000-0000"></label></div></fieldset>
+                <fieldset><legend>Endereço</legend><div class="form-grid"><label>CEP<input id="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" required placeholder="00000-000"></label><label class="full">Rua<input id="street" autocomplete="address-line1" maxlength="120" required></label><label>Número<input id="number" autocomplete="address-line2" maxlength="20" required></label><label>Complemento<input id="complement" maxlength="80" placeholder="Apartamento, bloco…"></label><label>Bairro<input id="neighborhood" autocomplete="address-level3" maxlength="80" required></label><label>Cidade<input id="city" autocomplete="address-level2" maxlength="80" required></label><label>Estado<input id="state" autocomplete="address-level1" maxlength="2" required placeholder="SP"></label></div></fieldset>
+                <label class="terms"><input id="termsAccepted" type="checkbox" required><span>Li e aceito os <strong>Termos de Uso</strong> e a <strong>Política de Privacidade</strong>.</span></label>
+                <button class="pay-button" id="payButton" type="submit"><span>Gerar PIX</span><span>→</span></button>
+                <p class="safe-note">A senha é protegida por hash. CPF e dados pessoais não são exibidos nas APIs públicas.</p>
             </form>
-            <p class="safe-note">O valor é definido no servidor. Seus dados de pagamento não ficam expostos no navegador.</p>
         </section>
-        <section class="pix-card hidden" id="pixCard">
-            <p class="eyebrow">COBRANÇA PIX</p><h1>Aguardando pagamento</h1><p>Escaneie o QR Code ou copie o código abaixo. A confirmação é automática.</p>
+        <section class="pix-card hidden" id="pixCard" aria-live="polite">
+            <p class="eyebrow">COBRANÇA PIX</p><h1>Aguardando pagamento</h1><p>Escaneie o QR Code ou copie o código. A confirmação é automática.</p>
+            <div class="pix-plan"><span id="pixPlan"></span><strong id="pixAmount"></strong></div>
             <img id="qrcode" alt="QR Code PIX" class="qrcode">
             <div class="copy-field"><code id="copyPaste"></code><button id="copyButton" type="button">Copiar</button></div>
-            <div class="payment-status" id="paymentStatus"><i></i> Aguardando pagamento</div>
+            <div class="payment-status" id="paymentStatus"><i></i>Aguardando pagamento…</div>
+            <p class="safe-note">Não feche esta página. Seu cadastro será concluído após a confirmação oficial do pagamento.</p>
         </section>
+        <section class="success-card hidden" id="successCard" aria-live="polite"><div class="success-mark">✓</div><p class="eyebrow">PAGAMENTO APROVADO</p><h1>Conta criada com sucesso!</h1><p>Seu plano foi ativado. Você será direcionado para entrar na sua conta.</p><a class="pay-button" href="login.html">Ir para o login <span>→</span></a></section>
     </main>
     <div id="message" class="message" role="status"></div>
     <script src="../javascript/config.js"></script><script src="../javascript/payment.js"></script>

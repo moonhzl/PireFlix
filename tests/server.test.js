@@ -35,6 +35,15 @@ test("recusa player sem sessão", async () => {
     assert.equal(response.status, 401);
 });
 
+test("checkout PIX permite iniciar cadastro sem sessão", async () => {
+    const response = await fetch(`http://localhost:${port}/api/payment/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "basic" })
+    });
+    assert.notEqual(response.status, 401);
+});
+
 test("mantém os três planos e os preços atuais no checkout", () => {
     const { PLANS } = require("../back/services/paymentService");
     assert.deepEqual(PLANS, {
