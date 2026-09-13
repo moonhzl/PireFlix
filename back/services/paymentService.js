@@ -24,6 +24,13 @@ function cleanDigits(value) { return String(value || "").replace(/\D/g, ""); }
 function publicOrder(order) {
     return { transactionId: order.transaction_id, plan: order.plan, amount: Number(order.amount), status: order.status, qrcode: order.pix_qrcode, copyPaste: order.pix_copy_paste, paidAt: order.paid_at };
 }
+function providerMessage(data, status) {
+    const source = data?.error || data?.message || data?.errors;
+    if (typeof source === "string") return source;
+    if (Array.isArray(source)) return source.map(item => item?.message || item?.msg || String(item)).join("; ");
+    if (source && typeof source === "object") return source.message || source.msg || source.code || `CashinPay retornou HTTP ${status}`;
+    return `CashinPay recusou a cobrança (HTTP ${status}).`;
+}
 
 async function requestCashInPay(body) {
     let lastError;
@@ -33,9 +40,9 @@ async function requestCashInPay(body) {
             const data = await response.json().catch(() => ({}));
             if (response.ok) return data;
             if (response.status < 500) {
-                const providerError = typeof data.error === "string" ? data.error : (data.error?.message || data.message);
-                const error = new Error(providerError || `CashinPay recusou a cobrança (HTTP ${response.status}).`);
+                const error = new Error(providerMessage(data, response.status));
                 error.retryable = false;
+                error.providerStatus = response.status;
                 throw error;
             }
             lastError = new Error(`CashinPay retornou HTTP ${response.status}`);

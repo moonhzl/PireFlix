@@ -295,7 +295,10 @@ app.get("/api/me", requireUser, (req, res) => res.json({ ok: true, user: req.use
 app.patch("/api/profile", requireUser, (req, res) => runAuthController({ action: "update_profile", user_id: req.user.id, ...req.body }, res));
 app.post("/api/payment/create", requireUser, async (req, res) => {
     try { res.status(201).json({ ok: true, payment: await paymentService.createPayment(req.user, req.body) }); }
-    catch (error) { res.status(400).json({ ok: false, error: error.message }); }
+    catch (error) {
+        console.error("Falha ao criar pagamento PIX:", { providerStatus: error.providerStatus || null, reason: error.message });
+        res.status(error.providerStatus ? 502 : 400).json({ ok: false, error: error.message });
+    }
 });
 app.get("/api/payment/:transactionId", requireUser, async (req, res) => {
     try { res.json({ ok: true, payment: await paymentService.getPayment(req.user.id, req.params.transactionId) }); }
