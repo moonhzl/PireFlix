@@ -99,11 +99,57 @@ def create_coupon(request):
 	return {"ok": True, "id": coupon["id"]}
 
 
+def finance(request):
+	users_by_id = {user.get("id"): user for user in rows("users")}
+	payments = rows("payments", order="created_at.desc")
+	term = str(request.get("search") or "").lower().strip()
+	status = str(request.get("status") or "").lower().strip()
+	plan = str(request.get("plan") or "").lower().strip()
+
+	def enriched(payment):
+		item = dict(payment)
+		user = users_by_id.get(item.get("user_id"), {})
+		item["user_name"] = user.get("name") or "Usuário removido"
+		item["user_email"] = user.get("email") or ""
+		return item
+
+	items = [enriched(payment) for payment in payments]
+	if term:
+		items = [item for item in items if term in f"{item.get('transaction_id', '')} {item.get('user_name', '')} {item.get('user_email', '')}".lower()]
+	if status:
+		items = [item for item in items if str(item.get("status") or "").lower() == status]
+	if plan:
+		items = [item for item in items if str(item.get("plan") or "").lower() == plan]
+
+	approved = [item for item in payments if item.get("status") == "approved"]
+	pending = [item for item in payments if item.get("status") == "pending"]
+	cancelled = [item for item in payments if item.get("status") in ("cancelled", "refunded", "failed")]
+	months = {}
+	for item in approved:
+		month = str(item.get("created_at") or "")[:7]
+		if month: months[month] = months.get(month, 0) + float(item.get("amount") or 0)
+	series = [{"month": month, "amount": amount} for month, amount in sorted(months.items())[-6:]]
+	return {"ok": True, "data": {
+		"metrics": {
+			"revenue": sum(float(item.get("amount") or 0) for item in approved),
+			"approved_count": len(approved),
+			"pending_value": sum(float(item.get("amount") or 0) for item in pending),
+			"pending_count": len(pending),
+			"cancelled_count": len(cancelled),
+			"total_count": len(payments)
+		},
+		"payments": items,
+		"series": series,
+		"plans": sorted({str(item.get("plan")) for item in payments if item.get("plan")})
+	}}
+
+
 def dispatch(request):
 	action = request.get("action")
 	if action == "login": return admin_login(request)
 	if action == "dashboard": return {"ok": True, "data": dashboard()}
 	if action == "users": return {"ok": True, "data": users(request)}
+	if action == "finance": return finance(request)
 	if action == "update_user": return update_user(request)
 	if action == "reset_password": return reset_password(request)
 	if action == "delete_user": return delete_user(request)

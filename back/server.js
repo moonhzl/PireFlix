@@ -193,6 +193,7 @@ app.patch("/api/admin/modules/:key", (req, res) => runAdminController({ action: 
 app.get("/api/admin/settings", (req, res) => runAdminController({ action: "settings" }, res));
 app.put("/api/admin/settings", (req, res) => runAdminController({ action: "update_settings", settings: req.body, admin_id: req.admin.id, ip: req.ip }, res));
 app.get("/api/admin/payments", (req, res) => runAdminController({ action: "payments" }, res));
+app.get("/api/admin/finance", (req, res) => runAdminController({ action: "finance", ...req.query }, res));
 app.get("/api/admin/movies", (req, res) => runAdminController({ action: "movies" }, res));
 app.post("/api/admin/movies", (req, res) => runAdminController({ action: "create_movie", admin_id: req.admin.id, ip: req.ip, ...req.body }, res));
 app.get("/api/admin/coupons", (req, res) => runAdminController({ action: "coupons" }, res));
