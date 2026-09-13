@@ -195,7 +195,8 @@ function renderProfile() {
     document.getElementById("perfilNome").value = currentUser.name || "";
     document.getElementById("perfilFoto").value = currentUser.avatar || "";
     document.getElementById("perfilEmail").textContent = currentUser.email || "";
-    document.getElementById("perfilPlano").textContent = `Plano ${currentUser.plan || "free"}`;
+    const planName = { free: "Gratuito", basic: "Básico", standard: "Padrão", family: "Padrão", premium: "Premium" }[currentUser.plan] || currentUser.plan || "Gratuito";
+    document.getElementById("perfilPlano").textContent = `Plano ${planName}`;
     document.getElementById("perfilStatus").textContent = `Status: ${currentUser.status || "ativo"}`;
     document.getElementById("perfilExpiracao").textContent = currentUser.expires_at ? `Renovação: ${new Date(currentUser.expires_at).toLocaleDateString("pt-BR")}` : "Sem data de expiração cadastrada.";
     const avatar = document.getElementById("avatarPreview");

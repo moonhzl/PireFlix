@@ -60,8 +60,9 @@ def users(request):
 def update_user(request):
 	user_id = int(request["id"])
 	values = {key: request[key] for key in ("status", "plan", "role") if request.get(key) is not None}
+	if values.get("plan") == "family": values["plan"] = "standard"
 	if values.get("status") not in (None, "active", "blocked", "inactive"): raise ValueError("Status inválido.")
-	if values.get("plan") not in (None, "free", "basic", "premium", "family"): raise ValueError("Plano inválido.")
+	if values.get("plan") not in (None, "free", "basic", "standard", "premium"): raise ValueError("Plano inválido.")
 	if values.get("role") not in (None, "user", "manager", "admin"): raise ValueError("Cargo inválido.")
 	update("users", {"id": f"eq.{user_id}"}, values)
 	log_action(request["admin_id"], "user_updated", "Usuário atualizado", user_id, request.get("ip"))

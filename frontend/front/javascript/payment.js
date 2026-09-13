@@ -1,6 +1,7 @@
-const selectedPlan = new URLSearchParams(location.search).get("plan") || "basic";
-const planNames = { basic: "Básico", family: "Padrão", premium: "Premium" };
-const planPrices = { basic: "R$ 14,90", family: "R$ 24,90", premium: "R$ 34,90" };
+const requestedPlan = new URLSearchParams(location.search).get("plan") || "basic";
+const selectedPlan = requestedPlan === "family" ? "standard" : requestedPlan;
+const planNames = { basic: "Básico", standard: "Padrão", premium: "Premium" };
+const planPrices = { basic: "R$ 5,90", standard: "R$ 12,90", premium: "R$ 24,90" };
 let transactionId;
 let statusTimer;
 const message = document.getElementById("message");

@@ -9,10 +9,11 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } }) : null;
 
 const PLANS = {
-    basic: { name: "Básico", amount: 14.90 },
-    family: { name: "Padrão", amount: 24.90 },
-    premium: { name: "Premium", amount: 34.90 }
+    basic: { name: "Básico", amount: 5.90 },
+    standard: { name: "Padrão", amount: 12.90 },
+    premium: { name: "Premium", amount: 24.90 }
 };
+const LEGACY_PLAN_ALIASES = { family: "standard" };
 
 function now() { return new Date().toISOString(); }
 function ensureConfigured() {
@@ -41,7 +42,8 @@ async function requestCashInPay(body) {
 
 async function createPayment(user, payload) {
     ensureConfigured();
-    const planKey = String(payload.plan || "").toLowerCase();
+    const requestedPlan = String(payload.plan || "").toLowerCase();
+    const planKey = LEGACY_PLAN_ALIASES[requestedPlan] || requestedPlan;
     const plan = PLANS[planKey];
     const phone = cleanDigits(payload.phone);
     const document = cleanDigits(payload.document);
@@ -108,7 +110,7 @@ async function processWebhook(rawBody, signature) {
             const paidAt = status === "approved" ? (order.paid_at || now()) : order.paid_at;
             await supabase.from("payment_orders").update({ status, paid_at: paidAt, updated_at: now() }).eq("id", order.id);
             await supabase.from("payments").update({ status, paid_at: paidAt, updated_at: now() }).eq("transaction_id", order.transaction_id);
-            if (status === "approved" && order.status !== "approved") await supabase.from("users").update({ plan: order.plan, subscription_status: "active" }).eq("id", order.user_id);
+            if (status === "approved" && order.status !== "approved") await supabase.from("users").update({ plan: LEGACY_PLAN_ALIASES[order.plan] || order.plan, subscription_status: "active" }).eq("id", order.user_id);
         }
     }
     await supabase.from("payment_webhook_events").update({ processed_at: now() }).eq("provider_event_id", eventId);

@@ -35,6 +35,16 @@ test("recusa player sem sessão", async () => {
     assert.equal(response.status, 401);
 });
 
+test("mantém os três planos e os preços atuais no checkout", () => {
+    const { PLANS } = require("../back/services/paymentService");
+    assert.deepEqual(PLANS, {
+        basic: { name: "Básico", amount: 5.90 },
+        standard: { name: "Padrão", amount: 12.90 },
+        premium: { name: "Premium", amount: 24.90 }
+    });
+    assert.equal("family" in PLANS, false);
+});
+
 test("recuperação não revela se o e-mail existe", async () => {
     const response = await fetch(`http://localhost:${port}/api/forgot-password`, {
         method: "POST",
